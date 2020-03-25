@@ -10,13 +10,20 @@ r.prototype = e.prototype, t.prototype = new r();
 };
 var GameArea = (function (_super) {
     __extends(GameArea, _super);
-    //用于保存每次点击消除的元素信息
     function GameArea() {
         var _this = _super.call(this) || this;
         _this.gameSound = new GameSound();
+        //元素方块的宽高
+        _this.cellWidthHeight = GameData.stageWidth / 10;
+        //游戏区域上下左右边界
+        _this.gameAreaLimit = {
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0
+        };
         //用于保存游戏区域全部元素方块的二维数组
         _this.imgArry = [];
-        _this.copyImgArry = [];
         //用于保存每次点击元素方块后，寻找到的与被点击元素相同type的元素方块
         _this.sameTypeCells = [];
         //用于保存每次点击方块的typeIndex
@@ -30,68 +37,56 @@ var GameArea = (function (_super) {
     GameArea.prototype.renderArea = function () {
         var _this = this;
         this.imgArry = [];
-        this.copyImgArry = [];
         for (var i = 0; i <= 9; i++) {
             var row = [];
-            var copyRow = [];
             var _loop_1 = function (j) {
                 var rIndex = Util.randomNum(1, 8);
                 var RiconName = 'cell-' + rIndex + '_png';
                 var rIcon = Util.createBitmapByName(RiconName);
-                rIcon.width = this_1.stage.stageWidth / 10;
-                rIcon.height = this_1.stage.stageWidth / 10;
-                rIcon.x = (j) * this_1.stage.stageWidth / 10;
-                rIcon.y = this_1.stage.stageHeight - this_1.stage.stageWidth + (i - 1) * this_1.stage.stageWidth / 10;
+                rIcon.width = this_1.cellWidthHeight;
+                rIcon.height = this_1.cellWidthHeight;
+                rIcon.x = j * this_1.cellWidthHeight;
+                rIcon.y = this_1.stage.stageHeight - this_1.stage.stageWidth + (i - 1) * this_1.cellWidthHeight;
                 rIcon.touchEnabled = true;
                 var rItem = {
                     icon: rIcon,
                     typeIndex: rIndex,
                     rowIndex: i,
                     colIndex: j,
-                    newRowIndex: i,
+                    x: j * this_1.cellWidthHeight,
+                    y: this_1.stage.stageHeight - this_1.stage.stageWidth + (i - 1) * this_1.cellWidthHeight,
                     isRemove: false
                 };
-                var copyRItem = {
-                    icon: rIcon,
-                    typeIndex: rIndex,
-                    rowIndex: i,
-                    colIndex: j,
-                };
                 row.push(rItem);
-                copyRow.push(copyRItem);
                 this_1.addChild(rIcon);
                 rIcon.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
                     //点击元素方块时播放点击音乐
                     _this.gameSound.loadClickSound();
-                    // //执行消除和上方元素掉落行为
-                    // this.removeChild(rIcon)
-                    // for (let i = 9; i >= 0; i--) {
-                    // 	for (let j = 9; j >= 0; j--) {
-                    // 		if (imgArry[i][j].colIndex === rItem.colIndex && imgArry[i][j].rowIndex < rItem.rowIndex) {
-                    // 			// imgArry[i][j].icon.y += this.stage.stageWidth / 10
-                    // 			egret.Tween.get(imgArry[i][j].icon)
-                    // 				.to({ y: imgArry[i][j].icon.y - 13 }, 200, egret.Ease.sineIn)
-                    // 				.to({ y: imgArry[i][j].icon.y + this.stage.stageWidth / 10 }, 500, egret.Ease.sineIn)
-                    // 		}
-                    // 	}
-                    // }
                     _this.cellTypeIndex = rItem.typeIndex;
                     _this.handleClickCell(rItem);
                     _this.time();
                 }, this_1);
+                if (i === 0 && j === 0) {
+                    this_1.gameAreaLimit.left = rIcon.x;
+                    this_1.gameAreaLimit.top = rIcon.y;
+                }
+                if (i === 9 && j === 9) {
+                    this_1.gameAreaLimit.right = rIcon.x;
+                    this_1.gameAreaLimit.bottom = rIcon.y;
+                }
             };
             var this_1 = this;
             for (var j = 0; j <= 9; j++) {
                 _loop_1(j);
             }
             this.imgArry.push(row);
-            this.copyImgArry.push(copyRow);
         }
         // console.log(this.imgArry)
     };
     /**
      * 判断给定坐标的方块上下左右是否有与它相同 typeIndex 的方块，
      * 如果有，并且四周的方块还未放入 sameTypeCells 数组，则放入
+     * 根据当前点击方块的x，y坐标进行上下左右查找
      */
     GameArea.prototype.handleClickCell = function (rItem) {
         var flag = false;
@@ -105,23 +100,54 @@ var GameArea = (function (_super) {
         if (!flag && rItem.typeIndex === this.cellTypeIndex && rItem.typeIndex != 99) {
             this.sameTypeCells.push(rItem);
             //上
-            if (rItem.rowIndex >= 1) {
-                this.handleClickCell(this.imgArry[rItem.rowIndex - 1][rItem.colIndex]);
+            if (rItem.y > this.gameAreaLimit.top) {
+                if (this.findCellByXy(rItem.x, rItem.y - this.cellWidthHeight)) {
+                    this.handleClickCell(this.findCellByXy(rItem.x, rItem.y - this.cellWidthHeight));
+                }
             }
             //下
-            if (rItem.rowIndex <= 8) {
-                this.handleClickCell(this.imgArry[rItem.rowIndex + 1][rItem.colIndex]);
+            if (rItem.rowIndex < this.gameAreaLimit.bottom) {
+                if (this.findCellByXy(rItem.x, rItem.y + this.cellWidthHeight)) {
+                    this.handleClickCell(this.findCellByXy(rItem.x, rItem.y + this.cellWidthHeight));
+                }
             }
             //左
-            if (rItem.colIndex >= 1) {
-                this.handleClickCell(this.imgArry[rItem.rowIndex][rItem.colIndex - 1]);
+            if (rItem.colIndex > this.gameAreaLimit.left) {
+                if (this.findCellByXy(rItem.x - this.cellWidthHeight, rItem.y)) {
+                    this.handleClickCell(this.findCellByXy(rItem.x - this.cellWidthHeight, rItem.y));
+                }
             }
             //右
-            if (rItem.colIndex <= 8) {
-                this.handleClickCell(this.imgArry[rItem.rowIndex][rItem.colIndex + 1]);
+            if (rItem.colIndex < this.gameAreaLimit.right) {
+                if (this.findCellByXy(rItem.x + this.cellWidthHeight, rItem.y)) {
+                    this.handleClickCell(this.findCellByXy(rItem.x + this.cellWidthHeight, rItem.y));
+                }
             }
         }
     };
+    /**
+     * 根据x，y值查找对应的元素方块
+     */
+    GameArea.prototype.findCellByXy = function (x, y) {
+        var targetItem;
+        var flag = false;
+        for (var i = 0; i <= 9; i++) {
+            if (flag) {
+                break;
+            }
+            for (var j = 0; j <= 9; j++) {
+                if (!this.imgArry[i][j].isRemove && this.imgArry[i][j].x === x && this.imgArry[i][j].y === y) {
+                    targetItem = this.imgArry[i][j];
+                    flag = true;
+                    break;
+                }
+            }
+        }
+        return targetItem;
+    };
+    /**
+     *
+     */
     GameArea.prototype.time = function () {
         if (!this.timer) {
             this.timer = new egret.Timer(50, 0);
@@ -255,13 +281,32 @@ var GameArea = (function (_super) {
                     }
                 }
                 for (var k = 0; k < this.sameTypeCells.length; k++) {
+                    // egret.Tween.get(this.sameTypeCells[k].icon)
+                    // 	.to({ scaleX: 1.2, scaleY: 1.2 }, 200, egret.Ease.cubicInOut)
+                    // 	.to({ scaleX: 0.1, scaleY: 0.1 }, 200, egret.Ease.cubicInOut)
                     this.removeChild(this.sameTypeCells[k].icon);
+                    this.sameTypeCells[k].isRemove = true;
                     for (var i = 9; i >= 0; i--) {
                         for (var j = 9; j >= 0; j--) {
+                            // if (this.imgArry[i][j].colIndex === this.sameTypeCells[k].colIndex && this.imgArry[i][j].rowIndex === this.sameTypeCells[k].rowIndex) {
+                            // 	egret.Tween.get(this.sameTypeCells[k].icon)
+                            // 		.to({ scaleX: 1.2, scaleY: 1.2 }, 200, egret.Ease.cubicInOut)
+                            // 		.to({ scaleX: 0.1, scaleY: 0.1 }, 200, egret.Ease.cubicInOut)
+                            // 		.call(() => {
+                            // 			this.removeChild(this.imgArry[i][j].icon)
+                            // 			this.imgArry[i][j].isRemove = true
+                            // 		})
+                            // 	// this.removeChild(this.imgArry[i][j].icon)
+                            // 	// this.imgArry[i][j].isRemove = true
+                            // } else 
                             if (this.imgArry[i][j].colIndex === this.sameTypeCells[k].colIndex && this.imgArry[i][j].rowIndex < this.sameTypeCells[k].rowIndex) {
                                 egret.Tween.get(this.imgArry[i][j].icon)
                                     .to({ y: this.imgArry[i][j].icon.y - 13 }, 200, egret.Ease.sineIn)
-                                    .to({ y: this.imgArry[i][j].icon.y + colRowIndexNumObj.col[j].removeNum * this.stage.stageWidth / 10 }, 500, egret.Ease.sineIn);
+                                    .to({ y: this.imgArry[i][j].icon.y + colRowIndexNumObj.col[j].removeNum * this.cellWidthHeight }, 500, egret.Ease.sineIn);
+                                // .call(() => {
+                                // 	this.imgArry[i][j].y = this.imgArry[i][j].icon.y + colRowIndexNumObj.col[j].removeNum * this.cellWidthHeight
+                                // })
+                                this.imgArry[i][j].y = this.imgArry[i][j].icon.y + colRowIndexNumObj.col[j].removeNum * this.cellWidthHeight;
                             }
                         }
                     }
