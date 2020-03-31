@@ -4,6 +4,8 @@ class GameArea extends egret.DisplayObjectContainer {
 
 	private configData = RES.getRes("config_json")
 
+	private headerArea
+
 	//元素方块的宽高
 	private cellWidthHeight: number = GameData.stageWidth / 10
 
@@ -28,8 +30,10 @@ class GameArea extends egret.DisplayObjectContainer {
 	private timer: egret.Timer
 	private sameTypeCellsLength: number = 0
 
-	public constructor() {
+	public constructor(headerArea: HeaderArea) {
 		super()
+		this.addEventListener(ViewManageEvent.CELL_MOVE_START, headerArea.updateScore, this)
+		this.headerArea = headerArea
 	}
 
 	/**
@@ -65,9 +69,16 @@ class GameArea extends egret.DisplayObjectContainer {
 				rIcon.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
 					//点击元素方块时播放点击音乐
 					this.gameSound.loadClickSound()
-					this.cellTypeIndex = rItem.typeIndex
-					this.handleClickCell(rItem)
-					this.time()
+					if (GameTools.chuiziActive) {
+						//使用了锤子消除道具
+						this.sameTypeCells.push(rItem)
+						this.moveFunc()
+					} else {
+						//没有使用锤子
+						this.cellTypeIndex = rItem.typeIndex
+						this.handleClickCell(rItem)
+						this.time()
+					}
 				}, this)
 				if (i === 0 && j === 0) {
 					this.gameAreaLimit.left = rIcon.x
@@ -242,81 +253,117 @@ class GameArea extends egret.DisplayObjectContainer {
 	private time() {
 		if (!this.timer) {
 			this.timer = new egret.Timer(50, 0)
-			this.timer.addEventListener(egret.TimerEvent.TIMER, this.timerFunc, this)
+			this.timer.addEventListener(egret.TimerEvent.TIMER, this.moveFunc, this)
 		}
 		this.timer.start()
 	}
 
-	private timerFunc() {
-		if (this.sameTypeCellsLength != this.sameTypeCells.length) {
-			this.sameTypeCellsLength = this.sameTypeCells.length
-		} else {
-			this.timer.stop()
+	private moveFunc() {
+		if (!GameTools.chuiziActive) {
+			if (this.sameTypeCellsLength != this.sameTypeCells.length) {
+				this.sameTypeCellsLength = this.sameTypeCells.length
+			} else {
+				this.timer.stop()
 
-			if (this.sameTypeCells.length > 1) {
-
-				//移动开始后方块不可点击
-				this.switchCellTouchEnabled(false)
-				// let event: ViewManageEvent = new ViewManageEvent(ViewManageEvent.CELL_MOVE_START)
-				// this.dispatchEvent(event);
-
-				/************************* 一、先执行上方方块下移操作 ***************************/
-				for (let k = 0; k < this.sameTypeCells.length; k++) {
-					// egret.Tween.get(this.sameTypeCells[k].icon)
-					// 	.to({ scaleX: 1.2, scaleY: 1.2 }, 200, egret.Ease.cubicInOut)
-					// 	.to({ scaleX: 0.1, scaleY: 0.1 }, 200, egret.Ease.cubicInOut)
-					this.removeChild(this.sameTypeCells[k].icon)
-					this.sameTypeCells[k].isRemove = true
+				if (this.sameTypeCells.length > 1) {
+					this.handleMove()
 				}
-				this.countCol()
-				for (let i = 9; i >= 0; i--) {
-					for (let j = 0; j <= 9; j++) {
-						let moveY = this.findYMoveNum(this.imgArry[i][j])
-						if (moveY > 0) {
-							this.imgArry[i][j].y += moveY
-							egret.Tween.get(this.imgArry[i][j].icon)
-								.to({ y: this.imgArry[i][j].icon.y - 13 }, 200, egret.Ease.sineIn)
-								.to({ y: this.imgArry[i][j].icon.y + moveY }, 500, egret.Ease.sineIn)
-						}
-					}
-				}
-				//确保每个方块在上方方块计算移动距离时只使用一次
-				for (let k = 0; k < this.sameTypeCells.length; k++) {
-					this.sameTypeCells[k].hasYMove = true
-				}
-
-				/************************* 二、再执行右方方块左移操作 ***************************/
-
-				this.countColClear()
-
-				for (let i = 0; i <= 9; i++) {
-					for (let j = 0; j <= 9; j++) {
-						let moveX = this.findXMoveNum(this.imgArry[i][j])
-						if (moveX > 0) {
-							this.imgArry[i][j].x -= moveX
-							egret.Tween.get(this.imgArry[i][j].icon)
-								// .to({ y: this.imgArry[i][j].icon.y - 13 }, 200, egret.Ease.sineIn)
-								.to({ x: this.imgArry[i][j].icon.x - moveX }, 300, egret.Ease.sineIn)
-								.call(() => {
-									// this.switchCellTouchEnabled(true)
-								})
-						}
-					}
-				}
-				//确保每列方块在右方整列方块计算移动距离时只使用一次
-				for (let k = 0; k < this.sameTypeCells.length; k++) {
-					this.sameTypeCells[k].hasXMove = true
-				}
-
-				// 移动结束后方块恢复可点击
-				setTimeout(() => {
-					this.switchCellTouchEnabled(true)
-				}, 500)
-
+				this.sameTypeCellsLength = 0
+				this.sameTypeCells = []
 			}
-
+		} else {
+			this.handleMove()
 			this.sameTypeCellsLength = 0
 			this.sameTypeCells = []
 		}
 	}
+
+	/**
+	 * 执行元素方块的下移和左移操作
+	 */
+	private handleMove() {
+		//移动开始后方块不可点击
+		this.switchCellTouchEnabled(false)
+		let event: ViewManageEvent = new ViewManageEvent(ViewManageEvent.CELL_MOVE_START)
+		event._sameTypeCellsNum = this.sameTypeCellsLength
+		event._headerArea = this.headerArea
+		this.dispatchEvent(event)
+		// this.headerArea.updateScore()
+
+		/************************* 一、先执行上方方块下移操作 ***************************/
+		for (let k = 0; k < this.sameTypeCells.length; k++) {
+			// egret.Tween.get(this.sameTypeCells[k].icon)
+			// 	.to({ scaleX: 1.2, scaleY: 1.2 }, 200, egret.Ease.cubicInOut)
+			// 	.to({ scaleX: 0.1, scaleY: 0.1 }, 200, egret.Ease.cubicInOut)
+			this.removeChild(this.sameTypeCells[k].icon)
+			this.sameTypeCells[k].isRemove = true
+		}
+		this.countCol()
+		for (let i = 9; i >= 0; i--) {
+			for (let j = 0; j <= 9; j++) {
+				let moveY = this.findYMoveNum(this.imgArry[i][j])
+				if (moveY > 0) {
+					this.imgArry[i][j].y += moveY
+					egret.Tween.get(this.imgArry[i][j].icon)
+						.to({ y: this.imgArry[i][j].icon.y - 13 }, 200, egret.Ease.sineIn)
+						.to({ y: this.imgArry[i][j].icon.y + moveY }, 500, egret.Ease.sineIn)
+				}
+			}
+		}
+		//确保每个方块在上方方块计算移动距离时只使用一次
+		for (let k = 0; k < this.sameTypeCells.length; k++) {
+			this.sameTypeCells[k].hasYMove = true
+		}
+
+		/************************* 二、再执行右方方块左移操作 ***************************/
+
+		this.countColClear()
+
+		for (let i = 0; i <= 9; i++) {
+			for (let j = 0; j <= 9; j++) {
+				let moveX = this.findXMoveNum(this.imgArry[i][j])
+				if (moveX > 0) {
+					this.imgArry[i][j].x -= moveX
+					egret.Tween.get(this.imgArry[i][j].icon)
+						// .to({ y: this.imgArry[i][j].icon.y - 13 }, 200, egret.Ease.sineIn)
+						.to({ x: this.imgArry[i][j].icon.x - moveX }, 300, egret.Ease.sineIn)
+						.call(() => {
+							// this.switchCellTouchEnabled(true)
+						})
+				}
+			}
+		}
+		//确保每列方块在右方整列方块计算移动距离时只使用一次
+		for (let k = 0; k < this.sameTypeCells.length; k++) {
+			this.sameTypeCells[k].hasXMove = true
+		}
+
+		// 移动结束后方块恢复可点击
+		setTimeout(() => {
+			this.switchCellTouchEnabled(true)
+		}, 500)
+	}
+
+	/**
+	 * 刷新游戏区域，开始重玩
+	 */
+	private restart() {
+		console.log(111)
+		for (let i = 0; i <= 9; i++) {
+			for (let j = 0; j <= 9; j++) {
+				if (!this.imgArry[i][j].isRemove) {
+					this.removeChild(this.imgArry[i][j].icon)
+				}
+				this.imgArry[i][j].isRemove = true
+			}
+		}
+		this.imgArry = []
+		this.sameTypeCells = []
+		this.cellTypeIndex = 99
+		this.timer = null
+		this.sameTypeCellsLength = 0
+		this.renderArea()
+	}
+
+
 }

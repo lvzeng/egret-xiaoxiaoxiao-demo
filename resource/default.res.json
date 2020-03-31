@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "checkbox_select_disabled_png,checkbox_select_down_png,checkbox_select_up_png,checkbox_unselect_png,selected_png,border_png,header_png,radiobutton_select_disabled_png,radiobutton_select_down_png,radiobutton_select_up_png,radiobutton_unselect_png,roundthumb_png,thumb_png,track_png,tracklight_png,handle_png,off_png,on_png,button_down_png,button_up_png,thumb_pb_png,track_pb_png,track_sb_png,bg_jpg,egret_icon_png,description_json,shuaxin_png,touxiang_png,chuizi_png,cell-1_png,cell-2_png,cell-3_png,cell-4_png,cell-5_png,cell-6_png,cell-7_png,cell-8_png,tempMusic_mp3,click_mp3,config_json",
+			"keys": "checkbox_select_disabled_png,checkbox_select_down_png,checkbox_select_up_png,checkbox_unselect_png,selected_png,border_png,header_png,radiobutton_select_disabled_png,radiobutton_select_down_png,radiobutton_select_up_png,radiobutton_unselect_png,roundthumb_png,thumb_png,track_png,tracklight_png,handle_png,off_png,on_png,button_down_png,button_up_png,thumb_pb_png,track_pb_png,track_sb_png,bg_jpg,egret_icon_png,description_json,shuaxin_png,touxiang_png,chuizi_png,cell-1_png,cell-2_png,cell-3_png,cell-4_png,cell-5_png,cell-6_png,cell-7_png,cell-8_png,tempMusic_mp3,click_mp3,config_json,chuizi-normal_png",
 			"name": "preload"
 		}
 	],
@@ -205,6 +205,11 @@
 			"name": "config_json",
 			"type": "json",
 			"url": "config/config.json"
+		},
+		{
+			"name": "chuizi-normal_png",
+			"type": "image",
+			"url": "assets/img/chuizi-normal.png"
 		}
 	]
 }

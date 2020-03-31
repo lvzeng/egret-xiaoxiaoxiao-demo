@@ -145,9 +145,13 @@ var Main = (function (_super) {
         this.addChild(headerArea);
         headerArea.renderArea();
         //生成游戏区域
-        var gameArea = new GameArea();
+        var gameArea = new GameArea(headerArea);
         this.addChild(gameArea);
         gameArea.renderArea();
+        //生成道具区域
+        var gameTools = new GameTools(gameArea);
+        this.addChild(gameTools);
+        gameTools.generateTools();
     };
     /**
      * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。

@@ -13,7 +13,9 @@ var ViewManageEvent = (function (_super) {
     function ViewManageEvent(type, bubbles, cancelable) {
         if (bubbles === void 0) { bubbles = false; }
         if (cancelable === void 0) { cancelable = false; }
-        return _super.call(this, type, bubbles, cancelable) || this;
+        var _this = _super.call(this, type, bubbles, cancelable) || this;
+        _this._sameTypeCellsNum = 0;
+        return _this;
     }
     ViewManageEvent.CELL_MOVE_START = "cell_move_start";
     ViewManageEvent.CELL_MOVE_OVER = "cell_move_over";

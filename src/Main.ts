@@ -89,11 +89,14 @@ class Main extends eui.UILayer {
         headerArea.renderArea()
 
         //生成游戏区域
-        let gameArea: GameArea = new GameArea()
+        let gameArea: GameArea = new GameArea(headerArea)
         this.addChild(gameArea)
         gameArea.renderArea()
 
-
+        //生成道具区域
+        let gameTools: GameTools = new GameTools(gameArea)
+        this.addChild(gameTools)
+        gameTools.generateTools()
 
     }
     /**
