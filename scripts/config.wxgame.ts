@@ -23,6 +23,40 @@ const config: ResourceManagerConfig = {
                     new CompilePlugin({ libraryType: "debug", defines: { DEBUG: true, RELEASE: false } }),
                     new ExmlPlugin('commonjs'), // 非 EUI 项目关闭此设置
                     new WxgamePlugin(useWxPlugin),
+                    new UglifyPlugin([
+                        {
+                            sources: ["libs/modules/egret/egret.js"],
+                            target: "egret.min.js"
+                        },
+                        {
+                            sources: ['libs/modules/eui/eui.js'],
+                            target: "eui.min.js"
+                        },
+                        {
+                            sources: ['libs/modules/assetsmanager/assetsmanager.js'],
+                            target: "assetsmanager.min.js"
+                        },
+                        {
+                            sources: ['libs/modules/dragonBones/dragonBones.js'],
+                            target: "dragonBones.min.js"
+                        },
+                        {
+                            sources: ['libs/modules/game/game.js'],
+                            target: "game.min.js"
+                        },
+                        {
+                            sources: ['libs/modules/tween/tween.js'],
+                            target: "tween.min.js"
+                        },
+                        {
+                            sources: ['libs/modules/socket/socket.js'],
+                            target: "socket.min.js"
+                        },
+                        {
+                            sources: ["main.js"],
+                            target: "main.min.js"
+                        }
+                    ]),
                     new ManifestPlugin({ output: 'manifest.js' })
                 ]
             }

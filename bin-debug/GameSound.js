@@ -27,7 +27,7 @@ var GameSound = (function (_super) {
         sound.addEventListener(egret.Event.COMPLETE, function (e) {
             this.stage.addEventListener(egret.TouchEvent.TOUCH_TAP, play, this);
         }, this);
-        sound.load("resource/assets/sound/tempMusic.mp3");
+        sound.load("https://static.adwangmai.com/game/wxgame-test/resource/assets/sound/tempMusic.mp3");
     };
     GameSound.prototype.loadClickSound = function () {
         if (!this.clickSound) {
@@ -36,7 +36,7 @@ var GameSound = (function (_super) {
             this.clickSound.addEventListener(egret.Event.COMPLETE, function (e) {
                 this.clickSound.play(0, 1);
             }, this);
-            this.clickSound.load("resource/assets/sound/click.mp3");
+            this.clickSound.load("https://static.adwangmai.com/game/wxgame-test/resource/assets/sound/click.mp3");
         }
         else {
             this.clickSound.play(0, 1);

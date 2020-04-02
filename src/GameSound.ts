@@ -17,7 +17,7 @@ class GameSound extends egret.DisplayObjectContainer {
 			this.stage.addEventListener(egret.TouchEvent.TOUCH_TAP, play, this)
 		}, this);
 
-		sound.load("resource/assets/sound/tempMusic.mp3");
+		sound.load("https://static.adwangmai.com/game/wxgame-test/resource/assets/sound/tempMusic.mp3");
 
 	}
 
@@ -36,7 +36,7 @@ class GameSound extends egret.DisplayObjectContainer {
 				this.clickSound.play(0, 1)
 			}, this);
 
-			this.clickSound.load("resource/assets/sound/click.mp3");
+			this.clickSound.load("https://static.adwangmai.com/game/wxgame-test/resource/assets/sound/click.mp3");
 		} else {
 			this.clickSound.play(0, 1)
 		}
