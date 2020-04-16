@@ -1,0 +1,11 @@
+{
+
+    "cellImgMinIndex": 1,
+    "cellImgMaxIndex": 4,
+    "levelConfig": {
+        "level_1": {
+            "finishScore": 10
+        }
+    }
+
+}

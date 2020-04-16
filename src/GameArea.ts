@@ -348,7 +348,6 @@ class GameArea extends egret.DisplayObjectContainer {
 	 * 刷新游戏区域，开始重玩
 	 */
 	private restart() {
-		console.log(111)
 		for (let i = 0; i <= 9; i++) {
 			for (let j = 0; j <= 9; j++) {
 				if (!this.imgArry[i][j].isRemove) {

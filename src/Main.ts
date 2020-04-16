@@ -38,7 +38,8 @@ class Main extends eui.UILayer {
         try {
             const loadingView = new LoadingUI();
             this.stage.addChild(loadingView);
-            await RES.loadConfig("https://static.adwangmai.com/game/wxgame-test/resource/default.res.json", "https://static.adwangmai.com/game/wxgame-test/resource/");
+            // await RES.loadConfig("https://static.adwangmai.com/game/wxgame-test/xiaoxiaoxiao_wxgame_remote/resource/default.res.json", "https://static.adwangmai.com/game/wxgame-test/xiaoxiaoxiao_wxgame_remote/resource/");
+            await RES.loadConfig("resource/default.res.json", "resource/");
             await this.loadTheme();
             await RES.loadGroup("preload", 0, loadingView);
             this.stage.removeChild(loadingView);
@@ -52,7 +53,8 @@ class Main extends eui.UILayer {
         return new Promise((resolve, reject) => {
             // load skin theme configuration file, you can manually modify the file. And replace the default skin.
             //加载皮肤主题配置文件,可以手动修改这个文件。替换默认皮肤。
-            let theme = new eui.Theme("https://static.adwangmai.com/game/wxgame-test/resource/default.thm.json", this.stage);
+            // let theme = new eui.Theme("https://static.adwangmai.com/game/wxgame-test/xiaoxiaoxiao_wxgame_remote/resource/default.thm.json", this.stage);
+            let theme = new eui.Theme("resource/default.thm.json", this.stage);
             theme.addEventListener(eui.UIEvent.COMPLETE, () => {
                 resolve();
             }, this);
